@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Optional, Inject, } from '@angular/core';
+import { APP_BASE_HREF } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 import { Observable } from 'rxjs/Observable';
@@ -19,10 +20,13 @@ export class HeroService {
 
   constructor(
     private http: HttpClient,
-    private messageService: MessageService) { }
+    private messageService: MessageService,
+    @Optional() @Inject(APP_BASE_HREF) origin: string) {
+    this.heroesUrl = `${origin}${this.heroesUrl}`;
+  }
 
   /** サーバーからヒーローを取得する */
-  getHeroes (): Observable<Hero[]> {
+  getHeroes(): Observable<Hero[]> {
     return this.http.get<Hero[]>(this.heroesUrl)
       .pipe(
         tap(heroes => this.log(`fetched heroes`)),
@@ -68,7 +72,7 @@ export class HeroService {
   //////// Save methods //////////
 
   /** POST: サーバーに新しいヒーローを登録する */
-  addHero (hero: Hero): Observable<Hero> {
+  addHero(hero: Hero): Observable<Hero> {
     return this.http.post<Hero>(this.heroesUrl, hero, httpOptions).pipe(
       tap((hero: Hero) => this.log(`added hero w/ id=${hero.id}`)),
       catchError(this.handleError<Hero>('addHero'))
@@ -76,7 +80,7 @@ export class HeroService {
   }
 
   /** DELETE: サーバーからヒーローを削除 */
-  deleteHero (hero: Hero | number): Observable<Hero> {
+  deleteHero(hero: Hero | number): Observable<Hero> {
     const id = typeof hero === 'number' ? hero : hero.id;
     const url = `${this.heroesUrl}/${id}`;
 
@@ -87,7 +91,7 @@ export class HeroService {
   }
 
   /** PUT: サーバー上でヒーローを更新 */
-  updateHero (hero: Hero): Observable<any> {
+  updateHero(hero: Hero): Observable<any> {
     return this.http.put(this.heroesUrl, hero, httpOptions).pipe(
       tap(_ => this.log(`updated hero id=${hero.id}`)),
       catchError(this.handleError<any>('updateHero'))
@@ -100,7 +104,7 @@ export class HeroService {
    * @param operation - 失敗した操作の名前
    * @param result - observableな結果として返す任意の値
    */
-  private handleError<T> (operation = 'operation', result?: T) {
+  private handleError<T>(operation = 'operation', result?: T) {
     return (error: any): Observable<T> => {
 
       // TODO: リモート上のロギング基盤にエラーを送信する
